@@ -7,10 +7,7 @@ import (
 	"time"
 )
 
-//	type ICache interface {
-//		Set()
-//		Get() (interface{}, bool)
-//	}
+var cache = NewCache(time.Second)
 
 type UserCacheKey int
 
@@ -30,7 +27,11 @@ func NewCache(defaultTTL time.Duration) *Cache {
 		Users:      make(map[UserCacheKey]*UserCacheNode, 0),
 		DefaultTTL: defaultTTL,
 	}
-	cache.StartCleanup()
+	go cache.StartCleanup()
+	return cache
+}
+
+func GetCache() *Cache {
 	return cache
 }
 

@@ -20,7 +20,9 @@ func (u *UserHandler) Get() func(http.ResponseWriter, *http.Request) {
 		if err != nil {
 			w.Write([]byte(err.Error()))
 		}
-		bytes, err := json.Marshal(userService.Get(id))
+		user := userService.Get(id)
+		// config.GetCache().Set(config.UserCacheKey(user.ID), *user)
+		bytes, err := json.Marshal(user)
 		if err != nil {
 			w.Write([]byte(err.Error()))
 		}

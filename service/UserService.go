@@ -13,6 +13,7 @@ type UserService struct{}
 
 func (u *UserService) Get(id int) *model.User {
 	var user model.User
+	// https://fakestoreapi.com/users
 	resp, err := http.Get("https://dummyjson.com/user/" + fmt.Sprint(id))
 	if err != nil {
 		log.Fatal(err)
