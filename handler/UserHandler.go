@@ -24,7 +24,6 @@ func (u *UserHandler) Get() func(http.ResponseWriter, *http.Request) {
 		if err != nil {
 			w.Write([]byte(err.Error()))
 		}
-		w.Header().Set("Content-Type", "application/json")
 		w.Write(bytes)
 	}
 }
