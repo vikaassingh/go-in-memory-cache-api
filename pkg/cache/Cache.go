@@ -1,15 +1,15 @@
-package config
+package cache
 
 import (
-	"fmt"
 	"go-in-memory-cache-api/model"
 	"sync"
 	"time"
 )
 
-var cache = NewCache(time.Second)
+var once sync.Once
+var cache *Cache
 
-type UserCacheKey int
+type UserCacheKey uint
 
 type UserCacheNode struct {
 	User model.User
@@ -22,16 +22,20 @@ type Cache struct {
 	DefaultTTL time.Duration
 }
 
-func NewCache(defaultTTL time.Duration) *Cache {
-	cache := &Cache{
-		Users:      make(map[UserCacheKey]*UserCacheNode, 0),
-		DefaultTTL: defaultTTL,
-	}
-	go cache.StartCleanup()
-	return cache
+func init() {
+	cache = GetCache(time.Second * 10)
 }
 
-func GetCache() *Cache {
+func GetCache(defaultTTL time.Duration) *Cache {
+	if cache == nil {
+		once.Do(func() {
+			cache = &Cache{
+				Users:      make(map[UserCacheKey]*UserCacheNode, 0),
+				DefaultTTL: defaultTTL,
+			}
+			go cache.StartCleanup()
+		})
+	}
 	return cache
 }
 
@@ -58,14 +62,18 @@ func (c *Cache) CleanCache() {
 func (c *Cache) Get(userCacheKey UserCacheKey) (userCacheNode *UserCacheNode, ok bool) {
 	c.Mutex.Lock()
 	defer c.Mutex.Unlock()
-	fmt.Println("reading from user cache")
 	userCacheNode, ok = c.Users[userCacheKey]
 	return
 }
 
 func (c *Cache) Set(userCacheKey UserCacheKey, user model.User) {
-	c.Users[userCacheKey] = &UserCacheNode{
-		User: user,
-		TTL:  time.Now().Add(c.DefaultTTL),
+	// fmt.Printf("\nBefore Set c:%p-%v", c, c)
+	if _, ok := c.Users[userCacheKey]; !ok {
+		c.Users[userCacheKey] = &UserCacheNode{
+			User: user,
+			TTL:  time.Now().Add(c.DefaultTTL),
+		}
 	}
+	// fmt.Printf("\nAfter Set cache:%p-%v", cache, cache)
+	// fmt.Printf("\nAfter Set c:%p-%v", c, c)
 }

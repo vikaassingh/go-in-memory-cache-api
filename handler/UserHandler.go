@@ -2,9 +2,11 @@ package handler
 
 import (
 	"encoding/json"
+	"go-in-memory-cache-api/pkg/cache"
 	"go-in-memory-cache-api/service"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -12,6 +14,8 @@ import (
 var userService service.UserService
 
 type UserHandler struct{}
+
+var myCache = cache.GetCache(time.Second)
 
 func (u *UserHandler) Get() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -21,7 +25,7 @@ func (u *UserHandler) Get() func(http.ResponseWriter, *http.Request) {
 			w.Write([]byte(err.Error()))
 		}
 		user := userService.Get(id)
-		// config.GetCache().Set(config.UserCacheKey(user.ID), *user)
+		myCache.Set(cache.UserCacheKey(user.ID), *user)
 		bytes, err := json.Marshal(user)
 		if err != nil {
 			w.Write([]byte(err.Error()))
