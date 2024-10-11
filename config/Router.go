@@ -36,7 +36,10 @@ func RequestMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		// log.Printf("Request: %s %s", r.Method, r, r.URL.Path)
+		t := time.Now()
 		next.ServeHTTP(w, r)
+		latency := time.Since(t)
+		log.Print("API latency in nano second:", latency.Nanoseconds())
 	})
 }
 
